@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>칭찬 주고받기 게임 💛</title>
+<style>
+  :root {
+    --color-bg: #fffbf0;
+    --color-surface: #ffffff;
+    --color-primary: #f9a825;
+    --color-primary-dark: #e65100;
+    --color-secondary: #f48fb1;
+    --color-accent: #a5d6a7;
+    --color-accent-dark: #388e3c;
+    --color-text: #4a3728;
+    --color-text-light: #7b5e57;
+    --color-border: #ffe0b2;
+    --color-shadow: rgba(249, 168, 37, 0.15);
+    --color-danger: #ef5350;
+    --radius-sm: 8px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    background: var(--color-bg);
+    color: var(--color-text);
+    min-height: 100vh;
+    padding: 16px;
+  }
+
+  .app-header {
+    text-align: center;
+    padding: 24px 16px 16px;
+    margin-bottom: 24px;
+  }
+  .app-header h1 {
+    font-size: clamp(1.5rem, 5vw, 2.2rem);
+    color: var(--color-primary-dark);
+    letter-spacing: -0.5px;
+  }
+  .app-header p {
+    color: var(--color-text-light);
+    margin-top: 6px;
+    font-size: 0.95rem;
+  }
+
+  .container {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: 0 4px 24px var(--color-shadow);
+    border: 1.5px solid var(--color-border);
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-primary-dark);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ── Screens ── */
+  .screen { display: none; animation: fadeIn 0.4s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+  /* ── Setup Screen ── */
+  .player-inputs { display: flex; flex-direction: column; gap: 10px; }
+  .player-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .player-row .player-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .input-text {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 0.95rem;
+    font-family: var(--font);
+    color: var(--color-text);
+    background: var(--color-bg);
+    transition: border-color var(--transition), box-shadow var(--transition);
+    outline: none;
+  }
+  .input-text:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(249, 168, 37, 0.2);
+  }
+  .btn-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform var(--transition), background var(--transition);
+    flex-shrink: 0;
+  }
+  .btn-icon:hover { transform: scale(1.1); }
+  .btn-add { background: var(--color-accent); color: var(--color-accent-dark); }
+  .btn-remove { background: #ffcdd2; color: var(--color-danger); }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    font-family: var(--font);
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
+    outline: none;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn:active { transform: translateY(0); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--color-primary), #fb8c00);
+    color: white;
+    box-shadow: 0 4px 16px rgba(249, 168, 37, 0.4);
+    width: 100%;
+    margin-top: 16px;
+  }
+  .btn-primary:hover { box-shadow: 0 6px 20px rgba(249, 168, 37, 0.5); }
+  .btn-danger {
+    background: #ffebee;
+    color: var(--color-danger);
+    border: 1.5px solid #ffcdd2;
+    font-size: 0.88rem;
+    padding: 8px 16px;
+  }
+  .btn-danger:hover { background: #ffcdd2; }
+  .btn-secondary {
+    background: var(--color-bg);
+    color: var(--color-text);
+    border: 1.5px solid var(--color-border);
+    font-size: 0.9rem;
+    padding: 9px 18px;
+  }
+  .btn-secondary:hover { background: var(--color-border); }
+
+  /* ── Game Screen ── */
+  .round-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #ffe0b2, #ffcc80);
+    color: var(--color-primary-dark);
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+  }
+  .pair-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 20px;
+    background: linear-gradient(135deg, #fff8e1, #fce4ec);
+    border-radius: var(--radius-md);
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .player-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .player-chip .avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+  .player-chip.giver .avatar {
+    background: linear-gradient(135deg, var(--color-primary), #fb8c00);
+    color: white;
+  }
+  .player-chip.receiver .avatar {
+    background: linear-gradient(135deg, var(--color-secondary), #e91e63);
+    color: white;
+  }
+  .player-chip .name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+  .player-chip .role-label {
+    font-size: 0.72rem;
+    color: var(--color-text-light);
+  }
+  .arrow {
+    font-size: 1.5rem;
+    color: var(--color-primary);
+    flex-shrink: 0;
+  }
+
+  .compliment-area { display: flex; flex-direction: column; gap: 12px; }
+  .compliment-area label {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--color-text-light);
+  }
+  textarea.input-text {
+    resize: vertical;
+    min-height: 90px;
+    line-height: 1.6;
+  }
+
+  /* ── Reaction Step ── */
+  .reaction-card {
+    background: linear-gradient(135deg, #fce4ec, #e8f5e9);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .reaction-card .compliment-preview {
+    font-size: 1.05rem;
+    font-style: italic;
+    color: var(--color-text);
+    background: white;
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    margin: 12px 0;
+    border-left: 3px solid var(--color-secondary);
+    text-align: left;
+  }
+  .reaction-card .receiver-prompt {
+    font-size: 0.9rem;
+    color: var(--color-text-light);
+    margin-bottom: 4px;
+  }
+  .reaction-btns {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .reaction-btn {
+    padding: 12px 18px;
+    border: 2px solid transparent;
+    border-radius: var(--radius-md);
+    background: white;
+    font-size: 0.95rem;
+    font-family: var(--font);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .reaction-btn:hover {
+    transform: translateY(-3px) scale(1.04);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  }
+  .reaction-btn[data-score="1"] { border-color: #a5d6a7; color: #2e7d32; }
+  .reaction-btn[data-score="1"]:hover { background: #e8f5e9; }
+  .reaction-btn[data-score="2"] { border-color: var(--color-secondary); color: #880e4f; }
+  .reaction-btn[data-score="2"]:hover { background: #fce4ec; }
+  .reaction-btn[data-score="3"] { border-color: #90caf9; color: #1565c0; }
+  .reaction-btn[data-score="3"]:hover { background: #e3f2fd; }
+
+  /* ── Stats ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+  }
+  .stat-card {
+    background: var(--color-bg);
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow var(--transition);
+  }
+  .stat-card:hover { box-shadow: 0 4px 16px var(--color-shadow); }
+  .stat-card.star {
+    border-color: var(--color-primary);
+    background: linear-gradient(135deg, #fff8e1, #fff3e0);
+  }
+  .stat-card.star::after {
+    content: '⭐';
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    font-size: 1rem;
+  }
+  .stat-name {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--color-text);
+    margin-bottom: 10px;
+    padding-right: 24px;
+  }
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--color-text-light);
+    margin-bottom: 4px;
+  }
+  .stat-row span:last-child { font-weight: 600; color: var(--color-text); }
+  .stat-bar-wrap {
+    height: 4px;
+    background: var(--color-border);
+    border-radius: 2px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+  .stat-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+    border-radius: 2px;
+    transition: width 0.6s ease;
+  }
+
+  /* ── History ── */
+  .history-list {
+    max-height: 320px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+  }
+  .history-list::-webkit-scrollbar { width: 5px; }
+  .history-list::-webkit-scrollbar-track { background: transparent; }
+  .history-list::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+  .history-item {
+    background: var(--color-bg);
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    font-size: 0.88rem;
+    animation: slideIn 0.3s ease;
+  }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
+  .history-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+  }
+  .history-giver { font-weight: 700; color: var(--color-primary-dark); }
+  .history-arrow { color: var(--color-text-light); }
+  .history-receiver { font-weight: 700; color: #c2185b; }
+  .history-time { margin-left: auto; color: var(--color-text-light); font-size: 0.78rem; }
+  .history-text { color: var(--color-text); line-height: 1.5; margin-bottom: 6px; }
+  .history-reaction { font-size: 0.82rem; color: var(--color-text-light); }
+  .empty-state {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--color-text-light);
+    font-size: 0.9rem;
+  }
+  .empty-state .emoji { font-size: 2.5rem; display: block; margin-bottom: 8px; }
+
+  /* ── Bottom bar ── */
+  .bottom-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+
+  /* ── Nav tabs (during game) ── */
+  .tab-bar {
+    display: flex;
+    gap: 4px;
+    background: var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 4px;
+    margin-bottom: 20px;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    font-family: var(--font);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-light);
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+  .tab-btn.active {
+    background: white;
+    color: var(--color-primary-dark);
+    box-shadow: 0 2px 8px var(--color-shadow);
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; animation: fadeIn 0.3s ease; }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--color-text);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 40px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    z-index: 1000;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ── Celebration ── */
+  .celebration {
+    text-align: center;
+    padding: 16px;
+    font-size: 2rem;
+    animation: pop 0.5s ease;
+  }
+  @keyframes pop {
+    0% { transform: scale(0.5); opacity: 0; }
+    70% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  @media (max-width: 480px) {
+    body { padding: 12px 8px; }
+    .card { padding: 18px; }
+    .pair-display { padding: 14px; gap: 8px; }
+    .reaction-btns { flex-direction: column; align-items: center; }
+    .reaction-btn { width: 100%; max-width: 240px; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <h1>💛 칭찬 주고받기 게임</h1>
+  <p>서로를 칭찬하며 마음을 나눠요</p>
+</div>
+
+<div class="container">
+
+  <!-- ══ SETUP SCREEN ══ -->
+  <div id="screen-setup" class="screen active">
+    <div class="card">
+      <div class="card-title">👥 참가자 이름을 입력하세요</div>
+      <div class="player-inputs" id="player-inputs"></div>
+      <button class="btn btn-add" id="btn-add-player" style="margin-top:12px; border-radius:var(--radius-sm); padding:10px; width:100%; font-family:var(--font); font-size:0.9rem; font-weight:600; cursor:pointer; border:1.5px dashed var(--color-accent-dark); background:var(--color-bg); color:var(--color-accent-dark); display:flex; align-items:center; justify-content:center; gap:6px; transition:background var(--transition);">
+        ＋ 참가자 추가 (최대 6명)
+      </button>
+      <button class="btn btn-primary" id="btn-start">🎮 게임 시작!</button>
+    </div>
+  </div>
+
+  <!-- ══ GAME SCREEN ══ -->
+  <div id="screen-game" class="screen">
+
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="game">🎯 게임</button>
+      <button class="tab-btn" data-tab="history">📜 기록</button>
+      <button class="tab-btn" data-tab="stats">📊 통계</button>
+    </div>
+
+    <!-- Game Tab -->
+    <div id="tab-game" class="tab-panel active">
+      <div class="card" id="game-card">
+        <!-- Filled dynamically -->
+      </div>
+      <div class="bottom-bar">
+        <button class="btn btn-danger" id="btn-reset">🗑 게임 초기화</button>
+        <button class="btn btn-secondary" id="btn-skip">⏭ 다른 쌍으로</button>
+      </div>
+    </div>
+
+    <!-- History Tab -->
+    <div id="tab-history" class="tab-panel">
+      <div class="card">
+        <div class="card-title">📜 칭찬 기록</div>
+        <div class="history-list" id="history-list"></div>
+      </div>
+    </div>
+
+    <!-- Stats Tab -->
+    <div id="tab-stats" class="tab-panel">
+      <div class="card">
+        <div class="card-title">📊 플레이어 통계</div>
+        <div class="stats-grid" id="stats-grid"></div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ── 상수 ──
+  const REACTIONS = [
+    { emoji: '😊', label: '감사해요', score: 1 },
+    { emoji: '🥰', label: '너무 좋아요', score: 2 },
+    { emoji: '💪', label: '힘이 나요', score: 3 },
+  ];
+  const STORAGE_KEYS = { players: 'cpg_players', history: 'cpg_history', round: 'cpg_round', pair: 'cpg_pair', gamePhase: 'cpg_phase' };
+
+  // ── 상태 ──
+  let state = {
+    players: [],
+    history: [],
+    round: 1,
+    currentPair: null,  // { giverIdx, receiverIdx }
+    phase: 'setup',     // 'setup' | 'writing' | 'reacting'
+  };
+
+  // ── localStorage 헬퍼 ──
+  const save = () => {
+    localStorage.setItem(STORAGE_KEYS.players, JSON.stringify(state.players));
+    localStorage.setItem(STORAGE_KEYS.history, JSON.stringify(state.history));
+    localStorage.setItem(STORAGE_KEYS.round, state.round);
+    localStorage.setItem(STORAGE_KEYS.pair, JSON.stringify(state.currentPair));
+    localStorage.setItem(STORAGE_KEYS.gamePhase, state.phase);
+  };
+
+  const load = () => {
+    try {
+      state.players = JSON.parse(localStorage.getItem(STORAGE_KEYS.players) || '[]');
+      state.history = JSON.parse(localStorage.getItem(STORAGE_KEYS.history) || '[]');
+      state.round = parseInt(localStorage.getItem(STORAGE_KEYS.round) || '1', 10);
+      state.currentPair = JSON.parse(localStorage.getItem(STORAGE_KEYS.pair) || 'null');
+      state.phase = localStorage.getItem(STORAGE_KEYS.gamePhase) || 'setup';
+    } catch {
+      // 손상된 데이터면 초기화
+      resetAll(false);
+    }
+  };
+
+  // ── 유틸 ──
+  const $ = id => document.getElementById(id);
+  const qs = (sel, ctx = document) => ctx.querySelector(sel);
+
+  const showToast = (msg) => {
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2400);
+  };
+
+  const getInitial = name => name ? name.trim().charAt(0).toUpperCase() : '?';
+
+  const formatTime = iso => {
+    const d = new Date(iso);
+    const pad = n => String(n).padStart(2, '0');
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
+  // 랜덤 쌍 선택 (자기 자신 제외)
+  const pickPair = (skipPair = null) => {
+    const n = state.players.length;
+    if (n < 2) return null;
+    let giverIdx, receiverIdx, attempts = 0;
+    do {
+      giverIdx = Math.floor(Math.random() * n);
+      receiverIdx = Math.floor(Math.random() * n);
+      attempts++;
+    } while (
+      (giverIdx === receiverIdx ||
+        (skipPair && giverIdx === skipPair.giverIdx && receiverIdx === skipPair.receiverIdx))
+      && attempts < 50
+    );
+    return giverIdx === receiverIdx ? null : { giverIdx, receiverIdx };
+  };
+
+  // ── 화면 전환 ──
+  const showScreen = id => {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    $(id).classList.add('active');
+  };
+
+  // ── 탭 ──
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      $('tab-' + btn.dataset.tab).classList.add('active');
+      if (btn.dataset.tab === 'history') renderHistory();
+      if (btn.dataset.tab === 'stats') renderStats();
+    });
+  });
+
+  // ── 셋업 화면 렌더링 ──
+  const renderSetup = () => {
+    const container = $('player-inputs');
+    container.innerHTML = '';
+    // 최소 2명 확보
+    if (state.players.length < 2) state.players = ['', ''];
+
+    state.players.forEach((name, i) => {
+      const row = document.createElement('div');
+      row.className = 'player-row';
+      row.innerHTML = `
+        <div class="player-num">${i + 1}</div>
+        <input type="text" class="input-text" placeholder="이름 입력" value="${escHtml(name)}" data-idx="${i}" maxlength="12">
+        ${state.players.length > 2 ? `<button class="btn-icon btn-remove" data-remove="${i}" title="삭제">✕</button>` : ''}
+      `;
+      container.appendChild(row);
+    });
+
+    // 추가 버튼 가시성
+    $('btn-add-player').style.display = state.players.length >= 6 ? 'none' : 'flex';
+  };
+
+  const escHtml = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  $('player-inputs').addEventListener('input', e => {
+    if (e.target.matches('.input-text')) {
+      state.players[parseInt(e.target.dataset.idx, 10)] = e.target.value;
+    }
+  });
+
+  $('player-inputs').addEventListener('click', e => {
+    if (e.target.closest('[data-remove]')) {
+      const idx = parseInt(e.target.closest('[data-remove]').dataset.remove, 10);
+      state.players.splice(idx, 1);
+      renderSetup();
+    }
+  });
+
+  $('btn-add-player').addEventListener('click', () => {
+    if (state.players.length < 6) {
+      state.players.push('');
+      renderSetup();
+      // 새 입력 포커스
+      const inputs = $('player-inputs').querySelectorAll('.input-text');
+      inputs[inputs.length - 1].focus();
+    }
+  });
+
+  $('btn-start').addEventListener('click', () => {
+    // 이름 동기화 (입력값 최신화)
+    $('player-inputs').querySelectorAll('.input-text').forEach((inp, i) => {
+      state.players[i] = inp.value.trim();
+    });
+    const valid = state.players.filter(p => p.length > 0);
+    if (valid.length < 2) {
+      showToast('최소 2명의 이름을 입력해주세요!');
+      return;
+    }
+    state.players = valid;
+    state.phase = 'writing';
+    state.currentPair = pickPair();
+    save();
+    showScreen('screen-game');
+    renderGameCard();
+  });
+
+  // ── 게임 카드 렌더링 ──
+  const renderGameCard = () => {
+    const card = $('game-card');
+    if (!state.currentPair) {
+      state.currentPair = pickPair();
+      if (!state.currentPair) {
+        card.innerHTML = '<div class="empty-state"><span class="emoji">😅</span>플레이어가 부족해요</div>';
+        return;
+      }
+    }
+    const giver = state.players[state.currentPair.giverIdx];
+    const receiver = state.players[state.currentPair.receiverIdx];
+
+    if (state.phase === 'writing') {
+      card.innerHTML = `
+        <div class="round-badge">ROUND ${state.round}</div>
+        <div class="pair-display">
+          <div class="player-chip giver">
+            <div class="avatar">${escHtml(getInitial(giver))}</div>
+            <div class="name">${escHtml(giver)}</div>
+            <div class="role-label">칭찬하는 사람</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="player-chip receiver">
+            <div class="avatar">${escHtml(getInitial(receiver))}</div>
+            <div class="name">${escHtml(receiver)}</div>
+            <div class="role-label">칭찬받는 사람</div>
+          </div>
+        </div>
+        <div class="compliment-area">
+          <label>${escHtml(giver)} 님, ${escHtml(receiver)} 님에 대한 칭찬을 써주세요 ✍️</label>
+          <textarea id="compliment-input" class="input-text" placeholder="예: 항상 밝은 에너지를 줘서 고마워요!" rows="3"></textarea>
+          <button class="btn btn-primary" id="btn-submit-compliment">📨 칭찬 전달하기</button>
+        </div>
+      `;
+      const ta = $('compliment-input');
+      ta.focus();
+      $('btn-submit-compliment').addEventListener('click', submitCompliment);
+      ta.addEventListener('keydown', e => { if (e.key === 'Enter' && e.ctrlKey) submitCompliment(); });
+    } else if (state.phase === 'reacting') {
+      // 마지막 칭찬 (아직 reaction 없는 것)
+      const pending = state.history.find(h => h.reaction === null);
+      if (!pending) { state.phase = 'writing'; renderGameCard(); return; }
+      card.innerHTML = `
+        <div class="round-badge">ROUND ${state.round}</div>
+        <div class="reaction-card">
+          <div class="receiver-prompt">${escHtml(receiver)} 님, 칭찬을 받았어요! 💌</div>
+          <div class="compliment-preview">"${escHtml(pending.text)}"</div>
+          <small style="color:var(--color-text-light); font-size:0.78rem;">— ${escHtml(giver)} 님의 칭찬</small>
+          <div class="reaction-btns">
+            ${REACTIONS.map(r => `<button class="reaction-btn" data-score="${r.score}">${r.emoji} ${r.label}</button>`).join('')}
+          </div>
+        </div>
+      `;
+      card.querySelectorAll('.reaction-btn').forEach(btn => {
+        btn.addEventListener('click', () => submitReaction(pending, parseInt(btn.dataset.score, 10)));
+      });
+    }
+  };
+
+  const submitCompliment = () => {
+    const input = $('compliment-input');
+    const text = input ? input.value.trim() : '';
+    if (!text) { showToast('칭찬 내용을 입력해주세요!'); return; }
+
+    state.history.unshift({
+      id: Date.now(),
+      giverIdx: state.currentPair.giverIdx,
+      receiverIdx: state.currentPair.receiverIdx,
+      giver: state.players[state.currentPair.giverIdx],
+      receiver: state.players[state.currentPair.receiverIdx],
+      text,
+      reaction: null,
+      reactionLabel: null,
+      score: 0,
+      time: new Date().toISOString(),
+    });
+    state.phase = 'reacting';
+    save();
+    renderGameCard();
+  };
+
+  const submitReaction = (entry, score) => {
+    const reaction = REACTIONS.find(r => r.score === score);
+    entry.reaction = reaction.emoji;
+    entry.reactionLabel = reaction.label;
+    entry.score = score;
+
+    state.round++;
+    state.phase = 'writing';
+    state.currentPair = pickPair(state.currentPair);
+    save();
+
+    // 축하 애니메이션 후 다음 라운드
+    const card = $('game-card');
+    card.innerHTML = `<div class="celebration">${reaction.emoji}</div><div style="text-align:center; padding:8px; color:var(--color-text-light); font-size:0.95rem;">칭찬이 전달됐어요!</div>`;
+    setTimeout(() => renderGameCard(), 900);
+  };
+
+  // ── 기록 렌더링 ──
+  const renderHistory = () => {
+    const list = $('history-list');
+    if (!state.history.length) {
+      list.innerHTML = '<div class="empty-state"><span class="emoji">📭</span>아직 칭찬 기록이 없어요</div>';
+      return;
+    }
+    list.innerHTML = state.history.map(h => `
+      <div class="history-item">
+        <div class="history-meta">
+          <span class="history-giver">${escHtml(h.giver)}</span>
+          <span class="history-arrow">→</span>
+          <span class="history-receiver">${escHtml(h.receiver)}</span>
+          <span class="history-time">${formatTime(h.time)}</span>
+        </div>
+        <div class="history-text">"${escHtml(h.text)}"</div>
+        ${h.reaction ? `<div class="history-reaction">${h.reaction} ${escHtml(h.reactionLabel || '')}</div>` : '<div class="history-reaction" style="color:#bdbdbd">반응 대기중...</div>'}
+      </div>
+    `).join('');
+  };
+
+  // ── 통계 렌더링 ──
+  const renderStats = () => {
+    const grid = $('stats-grid');
+    if (!state.players.length) {
+      grid.innerHTML = '<div class="empty-state">통계 없음</div>';
+      return;
+    }
+
+    // 통계 계산
+    const stats = state.players.map((name, idx) => {
+      const given = state.history.filter(h => h.giverIdx === idx || h.giver === name);
+      const received = state.history.filter(h => h.receiverIdx === idx || h.receiver === name);
+      const scoredReceived = received.filter(h => h.score > 0);
+      const avgScore = scoredReceived.length
+        ? (scoredReceived.reduce((s, h) => s + h.score, 0) / scoredReceived.length).toFixed(1)
+        : '-';
+      return { name, given: given.length, received: received.length, avgScore };
+    });
+
+    const maxReceived = Math.max(...stats.map(s => s.received), 1);
+    const starPlayer = stats.reduce((best, s) => s.received > best.received ? s : best, stats[0]);
+
+    grid.innerHTML = stats.map(s => `
+      <div class="stat-card ${s.name === starPlayer.name && s.received > 0 ? 'star' : ''}">
+        <div class="stat-name">${escHtml(s.name)}</div>
+        <div class="stat-row"><span>칭찬 줬어요</span><span>${s.given}회</span></div>
+        <div class="stat-row"><span>칭찬 받았어요</span><span>${s.received}회</span></div>
+        <div class="stat-row"><span>평균 반응</span><span>${s.avgScore === '-' ? '-' : '⭐'.repeat(Math.round(parseFloat(s.avgScore)))}</span></div>
+        <div class="stat-bar-wrap">
+          <div class="stat-bar" style="width:${maxReceived ? (s.received / maxReceived * 100) : 0}%"></div>
+        </div>
+      </div>
+    `).join('');
+  };
+
+  // ── 스킵 ──
+  $('btn-skip').addEventListener('click', () => {
+    if (state.phase === 'reacting') { showToast('반응을 먼저 선택해주세요!'); return; }
+    const prev = state.currentPair;
+    state.currentPair = pickPair(prev);
+    save();
+    renderGameCard();
+    showToast('다른 쌍으로 바꿨어요!');
+  });
+
+  // ── 초기화 ──
+  const resetAll = (confirm_ = true) => {
+    if (confirm_ && !confirm('⚠️ 모든 칭찬 기록과 통계가 삭제됩니다.\n정말 초기화할까요?')) return;
+    Object.values(STORAGE_KEYS).forEach(k => localStorage.removeItem(k));
+    state = { players: ['', ''], history: [], round: 1, currentPair: null, phase: 'setup' };
+    showScreen('screen-setup');
+    renderSetup();
+  };
+
+  $('btn-reset').addEventListener('click', () => resetAll(true));
+
+  // ── 앱 초기화 ──
+  const init = () => {
+    load();
+    if (state.phase !== 'setup' && state.players.length >= 2) {
+      showScreen('screen-game');
+      renderGameCard();
+    } else {
+      state.phase = 'setup';
+      showScreen('screen-setup');
+      renderSetup();
+    }
+  };
+
+  init();
+
+})();
+</script>
+</body>
+</html>
